@@ -8,7 +8,13 @@ export function NetworkStats() {
   const [settlementTime, setSettlementTime] = useState(800);
   const [isConnected, setIsConnected] = useState(false);
   const [chainId, setChainId] = useState('10143');
-  const publicClient = usePublicClient();
+  
+  let publicClient;
+  try {
+    publicClient = usePublicClient();
+  } catch (error) {
+    publicClient = null;
+  }
 
   useEffect(() => {
     const updateNetworkStats = async () => {
