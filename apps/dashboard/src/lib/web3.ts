@@ -3,6 +3,14 @@
 import { createConfig, http } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 
+// Get RPC URL from environment or use default
+const getRpcUrl = (): string => {
+  if (typeof window !== 'undefined' && (window as any).__ENV__?.NEXT_PUBLIC_MONAD_RPC) {
+    return (window as any).__ENV__.NEXT_PUBLIC_MONAD_RPC;
+  }
+  return process.env.NEXT_PUBLIC_MONAD_RPC || 'https://testnet-rpc.monad.xyz';
+};
+
 // Monad Testnet configuration
 export const monadTestnet = {
   id: 10143,
@@ -15,10 +23,10 @@ export const monadTestnet = {
   },
   rpcUrls: {
     default: {
-      http: ['https://testnet.monad.dev'],
+      http: [getRpcUrl()],
     },
     public: {
-      http: ['https://testnet.monad.dev'],
+      http: [getRpcUrl()],
     },
   },
   blockExplorers: {
@@ -33,7 +41,7 @@ export const monadTestnet = {
 export const config = createConfig({
   chains: [monadTestnet, mainnet],
   transports: {
-    [monadTestnet.id]: http(),
+    [monadTestnet.id]: http(getRpcUrl()),
     [mainnet.id]: http(),
   },
 });

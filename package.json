@@ -1,0 +1,17 @@
+{
+  "name": "monad-agent-pay",
+  "version": "1.0.0",
+  "description": "Monad Agent Pay - Gas optimization and batch processing platform",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter @agentpay/dashboard build",
+    "dev": "pnpm --filter @agentpay/dashboard dev",
+    "lint": "pnpm --filter /^@agentpay/ lint"
+  },
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ]
+  }
+}
