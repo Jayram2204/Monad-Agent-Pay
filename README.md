@@ -1,17 +1,19 @@
-# AgentPay
+AgentPay
 
-**Payment infrastructure for autonomous AI agents on Monad**
+Payment infrastructure for autonomous AI agents on Monad**
 
 AgentPay enables AI agents to autonomously pay for APIs, data, and services using session-based micro-payments. Built with ERC-7579 modular accounts and optimized for Monad's 10,000 TPS parallel execution engine.
 
-## 🎯 The Problem
+<img width="1280" height="832" alt="Screenshot 2026-02-28 at 4 20 24 PM" src="https://github.com/user-attachments/assets/17a2f411-81c5-4f8a-b298-500c9fafa0c1" />
+
+🎯 The Problem
 
 AI agents need to call paid APIs but can't:
 - Use credit cards (no human intervention)
 - Handle traditional payment rails ($0.50 minimums, 2-3% fees)
 - Execute micro-payments economically ($0.001 API call + $5 gas fee = impossible)
 
-## 💡 The Solution
+💡 The Solution
 
 AgentPay provides:
 - **Session-based payments**: Pre-authorized spending limits for agents
@@ -19,7 +21,7 @@ AgentPay provides:
 - **Parallel execution**: Session-sharded storage enables 10,000+ concurrent payments
 - **Sub-second finality**: 0.8s confirmation keeps agent workflows smooth
 
-## 🚀 Quick Start
+🚀 Quick Start
 
 ```bash
 # Clone and install
@@ -51,9 +53,11 @@ See [QUICK_START.md](./packages/contracts/QUICK_START.md) for detailed instructi
 
 **Result**: $0.001 API calls are economically viable!
 
-## 🏗️ Architecture
+<img width="1274" height="479" alt="Screenshot 2026-02-28 at 4 20 33 PM" src="https://github.com/user-attachments/assets/1deaa259-7dc6-40e8-9cdc-66426d027acf" />
 
-### Session-Sharded Storage (Zero-Conflict Parallelism)
+🏗️ Architecture
+
+Session-Sharded Storage (Zero-Conflict Parallelism)
 
 ```solidity
 // Each session has isolated storage
@@ -63,7 +67,7 @@ mapping(bytes32 => SessionData) private _sessions;
 // Monad can execute 10,000+ payments in parallel
 ```
 
-### ERC-7579 Modular Accounts
+ERC-7579 Modular Accounts
 
 ```
 AgentFactory (CREATE2)
@@ -79,9 +83,11 @@ AgentFactory (CREATE2)
 
 See [ARCHITECTURE.md](./packages/contracts/ARCHITECTURE.md) for technical deep-dive.
 
-## 🎨 Usage Example
+<img width="639" height="355" alt="Screenshot 2026-02-28 at 4 22 47 PM" src="https://github.com/user-attachments/assets/1224e649-7a73-45b2-abbd-02b8aaa9cca8" />
 
-### Create Agent Account
+🎨 Usage Example
+
+Create Agent Account
 
 ```solidity
 AgentFactory factory = AgentFactory(0x...);
@@ -89,7 +95,7 @@ bytes32 salt = factory.generateSalt(owner, 0);
 address agent = factory.createAccount(owner, salt);
 ```
 
-### Create Payment Session
+Create Payment Session
 
 ```solidity
 AgentAccount account = AgentAccount(payable(agent));
@@ -102,7 +108,9 @@ bytes32 sessionId = account.createSession(
 );
 ```
 
-### Execute Micro-Payment
+<img width="637" height="494" alt="Screenshot 2026-02-28 at 4 23 32 PM" src="https://github.com/user-attachments/assets/99276968-30aa-4336-a5df-6b3001928b5e" />
+
+Execute Micro-Payment
 
 ```solidity
 // Pay $0.001 for API call
@@ -113,7 +121,7 @@ account.executeSessionPayment(
 );
 ```
 
-## 🔒 Security Features
+🔒 Security Features
 
 - **Owner-only session creation**: Only account owner can authorize sessions
 - **Spending limits**: Per-session caps prevent overspending
@@ -121,28 +129,7 @@ account.executeSessionPayment(
 - **Session revocation**: Owner can revoke anytime
 - **Module isolation**: Modules can't interfere with session state
 
-## 📦 Project Structure
-
-```
-packages/
-└── contracts/
-    ├── src/
-    │   ├── AgentAccount.sol       # ERC-7579 modular account
-    │   ├── AgentFactory.sol       # CREATE2 factory
-    │   └── interfaces/
-    │       ├── IERC7579Account.sol
-    │       └── IERC7579Module.sol
-    ├── test/
-    │   ├── AgentAccount.t.sol     # Account tests
-    │   └── AgentFactory.t.sol     # Factory tests
-    ├── script/
-    │   └── Deploy.s.sol           # Deployment script
-    ├── ARCHITECTURE.md            # Technical deep-dive
-    ├── DEPLOYMENT.md              # Deployment guide
-    └── QUICK_START.md             # 5-minute tutorial
-```
-
-## 🧪 Testing
+🧪 Testing
 
 ```bash
 # Run all tests
@@ -165,7 +152,9 @@ All 20 tests pass with comprehensive coverage of:
 - Module installation/uninstallation
 - Access control and security
 
-## 🌐 Monad Testnet
+<img width="1239" height="384" alt="Screenshot 2026-02-28 at 4 23 44 PM" src="https://github.com/user-attachments/assets/6095d733-a88c-402a-930d-c8c253f78db9" />
+
+🌐 Monad Testnet
 
 - **Chain ID**: 10143
 - **RPC**: https://testnet.monad.xyz
@@ -174,7 +163,7 @@ All 20 tests pass with comprehensive coverage of:
 - **Block Time**: 0.8s
 - **TPS**: 10,000+
 
-## 🎯 Why Monad?
+🎯 Why Monad?
 
 | Requirement | Monad | Ethereum | Solana |
 |-------------|-------|----------|--------|
@@ -186,55 +175,43 @@ All 20 tests pass with comprehensive coverage of:
 
 **Verdict**: Monad is the only chain with high throughput, low fees, fast finality, AND EVM compatibility.
 
-## 🛣️ Roadmap
+🛣️ Roadmap
 
-### Phase 1: Core Infrastructure ✅
+Phase 1: Core Infrastructure ✅
 - [x] ERC-7579 modular accounts
 - [x] Session-based payments
 - [x] CREATE2 factory
 - [x] Comprehensive tests
 - [x] Monad testnet deployment
 
-### Phase 2: SDK & Integration (In Progress)
+ Phase 2: SDK & Integration (In Progress)
 - [ ] JavaScript/TypeScript SDK
 - [ ] API provider integration
 - [ ] Demo AI agent
 - [ ] Dashboard UI
 
-### Phase 3: Production Features
+Phase 3: Production Features
 - [ ] Escrow for proof-of-service
 - [ ] Relayer/paymaster for Web2 APIs
 - [ ] Multi-chain support
 - [ ] Mainnet deployment
 
-## 📚 Documentation
+📚 Documentation
 
 - [Quick Start Guide](./packages/contracts/QUICK_START.md) - Get started in 5 minutes
 - [Architecture](./packages/contracts/ARCHITECTURE.md) - Technical deep-dive
 - [Deployment Guide](./packages/contracts/DEPLOYMENT.md) - Production deployment
 - [ERC-7579 Spec](https://eips.ethereum.org/EIPS/eip-7579) - Modular account standard
 
-## 🤝 Contributing
 
-Contributions welcome! Please read our contributing guidelines and submit PRs.
-
-## 📄 License
+📄 License
 
 MIT License - see [LICENSE](./LICENSE) for details
 
-## 🔗 Links
+🔗 Links
 
 - [Monad](https://monad.xyz)
 - [Monad Docs](https://docs.monad.xyz)
 - [Monad Discord](https://discord.gg/monad)
 - [ERC-7579](https://eips.ethereum.org/EIPS/eip-7579)
 
-## 💬 Support
-
-- GitHub Issues: [Report bugs or request features]
-- Discord: [Join our community]
-- Twitter: [@AgentPay]
-
----
-
-Built with ❤️ for the AI agent economy on Monad
