@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
+
+import "forge-std/Script.sol";
+import {AgentFactory} from "../src/AgentFactory.sol";
+import {AgentAccount} from "../src/AgentAccount.sol";
+import {AgentEscrow} from "../src/AgentEscrow.sol";
+import {ReputationLedger} from "../src/ReputationLedger.sol";
+
+/// @title Deploy
+/// @notice Deployment script for AgentPay contracts on Monad Testnet
+contract Deploy is Script {
+    function run() external {
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(deployerPrivateKey);
+
+        console.log("Deploying contracts with account:", deployer);
+        console.log("Account balance:", deployer.balance);
+
+        vm.startBroadcast(deployerPrivateKey);
+
+        // Deploy ReputationLedger
+        ReputationLedger reputationLedger = new ReputationLedger();
+        console.log("ReputationLedger deployed at:", address(reputationLedger));
+        
+        // Deploy AgentEscrow
+        AgentEscrow agentEscrow = new AgentEscrow();
+        console.log("AgentEscrow deployed at:", address(agentEscrow));
+
+        // Deploy AgentFactory with dependencies
+        AgentFactory factory = new AgentFactory(address(agentEscrow), address(reputationLedger));
+        console.log("AgentFactory deployed at:", address(factory));
+
+        // Optional: Deploy a sample AgentAccount for testing
+        bytes32 salt = keccak256(abi.encodePacked(deployer, uint256(0)));
+        address agentAccount = factory.createAccount(deployer, salt);
+        console.log("Sample AgentAccount deployed at:", agentAccount);
+
+        vm.stopBroadcast();
+
+        // Log deployment info
+        console.log("\n=== Deployment Summary ===");
+        console.log("Network: Monad Testnet (ChainID: 10143)");
+        console.log("ReputationLedger:", address(reputationLedger));
+        console.log("AgentEscrow:", address(agentEscrow));
+        console.log("AgentFactory:", address(factory));
+        console.log("Sample AgentAccount:", agentAccount);
+        console.log("Owner:", deployer);
+    }
+}

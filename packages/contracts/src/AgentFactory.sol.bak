@@ -1,0 +1,138 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
+
+import {AgentAccount} from "./AgentAccount.sol";
+
+/// @title AgentFactory
+/// @notice Factory for deploying AgentAccount contracts with CREATE2
+/// @dev Deterministic addresses enable predictable agent IDs
+contract AgentFactory {
+    // ============ EVENTS ============
+    event AgentAccountCreated(
+        address indexed account,
+        address indexed owner,
+        bytes32 indexed salt
+    );
+
+    // ============ ERRORS ============
+    error DeploymentFailed();
+    error AccountAlreadyExists();
+
+    // ============ STATE ============
+    
+    /// @notice Mapping to track deployed accounts
+    mapping(address => bool) public isAccount;
+
+    /// @notice Total number of accounts created
+    uint256 public accountCount;
+
+    // ============ DEPLOYMENT ============
+
+    /// @notice AgentEscrow contract address
+    AgentEscrow public immutable agentEscrow;
+
+    /// @notice ReputationLedger contract address
+    ReputationLedger public immutable reputationLedger;
+
+    constructor(address _agentEscrow, address _reputationLedger) {
+        agentEscrow = AgentEscrow(_agentEscrow);
+        reputationLedger = ReputationLedger(_reputationLedger);
+    }
+
+    /// @notice Deploy a new AgentAccount using CREATE2
+    /// @param owner Address of the account owner
+    /// @param salt Salt for CREATE2 deployment (enables deterministic addresses)
+    /// @return account Address of the deployed AgentAccount
+    function createAccount(
+        address owner,
+        bytes32 salt
+    ) external returns (address account) {
+        // Compute the deterministic address
+        account = getAddress(owner, salt);
+
+        // Check if account already exists
+        if (isAccount[account]) revert AccountAlreadyExists();
+
+        // Deploy using CREATE2
+        bytes memory bytecode = abi.encodePacked(
+            type(AgentAccount).creationCode,
+            abi.encode(owner, address(agentEscrow), address(reputationLedger))
+        );
+
+        assembly {
+            account := create2(0, add(bytecode, 0x20), mload(bytecode), salt)
+        }
+
+        if (account == address(0)) revert DeploymentFailed();
+
+        // Track the account
+        isAccount[account] = true;
+        accountCount++;
+
+        emit AgentAccountCreated(account, owner, salt);
+    }
+
+    /// @notice Compute the deterministic address for an account
+    /// @param owner Address of the account owner
+    /// @param salt Salt for CREATE2 deployment
+    /// @return account Predicted address of the AgentAccount
+    function getAddress(
+        address owner,
+        bytes32 salt
+    ) public view returns (address account) {
+        bytes memory bytecode = abi.encodePacked(
+            type(AgentAccount).creationCode,
+            abi.encode(owner, address(agentEscrow), address(reputationLedger))
+        );
+
+        bytes32 hash = keccak256(
+            abi.encodePacked(
+                bytes1(0xff),
+                address(this),
+                salt,
+                keccak256(bytecode)
+            )
+        );
+
+        account = address(uint160(uint256(hash)));
+    }
+
+    /// @notice Deploy an account if it doesn't exist, otherwise return existing address
+    /// @param owner Address of the account owner
+    /// @param salt Salt for CREATE2 deployment
+    /// @return account Address of the AgentAccount
+    function getOrCreateAccount(
+        address owner,
+        bytes32 salt
+    ) external returns (address account) {
+        account = getAddress(owner, salt);
+
+        if (!isAccount[account]) {
+            // Deploy using CREATE2
+            bytes memory bytecode = abi.encodePacked(
+                type(AgentAccount).creationCode,
+                abi.encode(owner, address(agentEscrow), address(reputationLedger))
+            );
+
+            assembly {
+                account := create2(0, add(bytecode, 0x20), mload(bytecode), salt)
+            }
+
+            if (account == address(0)) revert DeploymentFailed();
+
+            // Track the account
+            isAccount[account] = true;
+            accountCount++;
+
+            emit AgentAccountCreated(account, owner, salt);
+        }
+    }
+
+    /// @notice Generate a deterministic salt based on owner and index
+    /// @param owner Address of the account owner
+    /// @param index Index for the account (allows multiple accounts per owner)
+    /// @return salt Generated salt
+    function generateSalt(address owner, uint256 index) external pure returns (bytes32 salt) {
+        salt = keccak256(abi.encodePacked(owner, index));
+    }
+}

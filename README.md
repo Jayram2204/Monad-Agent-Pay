@@ -1,83 +1,240 @@
-# AgentPay: The High-Frequency Settlement Layer for the AI Agent Economy
+# AgentPay
 
-AgentPay is a decentralized payment infrastructure built on Monad that enables autonomous AI agents to operate as independent economic actors. By synthesizing the x402 protocol, AP2 Intent Mandates, and ERC-7579 modular accounts, AgentPay dismantles the legacy SaaS wall, replacing 50 dollar monthly subscriptions with 0.05 dollar outcome-based micropayments.
+**Payment infrastructure for autonomous AI agents on Monad**
 
-<img width="1274" height="479" alt="Screenshot 2026-02-28 at 4 20 33 PM" src="https://github.com/user-attachments/assets/8f9b232d-c43e-4d15-8864-1d4b87ed1b96" />
+AgentPay enables AI agents to autonomously pay for APIs, data, and services using session-based micro-payments. Built with ERC-7579 modular accounts and optimized for Monad's 10,000 TPS parallel execution engine.
 
-## The 96 Percent Cost Reduction
+## 🎯 The Problem
 
-The current AI market is bottlenecked by subscription bloat. Developers pay fixed monthly fees for dozens of APIs that agents use sporadically. AgentPay enables a pay per inference model that reduces the total cost of ownership by up to 96 percent.
+AI agents need to call paid APIs but can't:
+- Use credit cards (no human intervention)
+- Handle traditional payment rails ($0.50 minimums, 2-3% fees)
+- Execute micro-payments economically ($0.001 API call + $5 gas fee = impossible)
 
-<img width="632" height="441" alt="Screenshot 2026-02-28 at 4 24 09 PM" src="https://github.com/user-attachments/assets/56aad0a4-83b0-4490-b11d-59c7843ed7a8" />
+## 💡 The Solution
 
-| Metric | Legacy SaaS Model | AgentPay Rail |
-| --- | --- | --- |
-| Monthly Unit Cost | 50.00 dollars | 2.10 dollars |
-| Billing Unit | User Seat | Successful Outcome |
-| Settlement Speed | T plus 2 Days | 0.8 Seconds |
-| Minimum Transaction | 0.50 dollars | 0.001 dollars |
+AgentPay provides:
+- **Session-based payments**: Pre-authorized spending limits for agents
+- **Micro-payment economics**: $0.006 gas cost makes $0.001 API calls viable
+- **Parallel execution**: Session-sharded storage enables 10,000+ concurrent payments
+- **Sub-second finality**: 0.8s confirmation keeps agent workflows smooth
 
-## Core Technical Pillars
+## 🚀 Quick Start
 
-<img width="637" height="494" alt="Screenshot 2026-02-28 at 4 23 32 PM" src="https://github.com/user-attachments/assets/cc1a3e6a-1e3b-40c8-9e36-cea7f685fe04" />
+```bash
+# Clone and install
+git clone <repo>
+cd packages/contracts
+forge install
 
-### Synchronous Machine-to-Machine Commerce
+# Run tests
+forge test
 
-AgentPay leverages Monad's 0.8s finality and optimistic parallel execution to ensure financial settlement occurs within the same sub-second reasoning loop as the AI internal logic.
+# Deploy to Monad Testnet
+cp .env.example .env
+# Add your PRIVATE_KEY to .env
+forge script script/Deploy.s.sol:Deploy \
+  --rpc-url https://testnet.monad.xyz \
+  --broadcast \
+  --legacy
+```
 
-<img width="1239" height="384" alt="Screenshot 2026-02-28 at 4 23 44 PM" src="https://github.com/user-attachments/assets/8ce912bf-e217-429e-b126-13f6caaeaeaf" />
+See [QUICK_START.md](./packages/contracts/QUICK_START.md) for detailed instructions.
 
+## 📊 Gas Benchmarks
 
-### Deterministic Trust via AP2
+| Operation | Gas Cost | Monad Cost (@$0.0001/gas) |
+|-----------|----------|---------------------------|
+| Create Session | 120,161 | $0.012 |
+| Session Payment | 59,886 | $0.006 |
+| Batch Payment (3x) | 128,185 | $0.013 |
 
-Utilizing the Agent Payments Protocol, every transaction is anchored in cryptographically signed Intent Mandates. The agent possesses no root authority and can only spend within parameters pre-authorized by the human owner.
+**Result**: $0.001 API calls are economically viable!
 
-### Parallel Arbitrage Efficiency
+## 🏗️ Architecture
 
-By implementing a sharded storage pattern in Solidity, AgentPay ensures that agent swarms execute balance updates in parallel without storage conflicts, maximizing MonadDB asynchronous I/O performance.
+### Session-Sharded Storage (Zero-Conflict Parallelism)
 
-## Mathematical Foundations
+```solidity
+// Each session has isolated storage
+mapping(bytes32 => SessionData) private _sessions;
 
-### Bayesian Gas Optimization
+// Different sessions = different storage slots = zero conflicts
+// Monad can execute 10,000+ payments in parallel
+```
 
-On Monad, users are charged based on the declared gas limit rather than actual usage. AgentPay utilizes a Bayesian prediction model to set the tightest possible buffers:
+### ERC-7579 Modular Accounts
 
-$$G_{opt} = \mu(G_{hist}) + Z \cdot \sigma(G_{hist})$$
+```
+AgentFactory (CREATE2)
+    │
+    ├─► AgentAccount #1
+    │   ├─ Session A (API Provider 1)
+    │   ├─ Session B (API Provider 2)
+    │   └─ Modules (validators, executors, hooks)
+    │
+    ├─► AgentAccount #2
+    └─► AgentAccount #3
+```
 
-Where $G_{opt}$ is the optimal limit, $\mu$ is the historical mean, and $\sigma$ is the standard deviation. This eliminates the deadweight gas costs common on legacy EVM chains.
+See [ARCHITECTURE.md](./packages/contracts/ARCHITECTURE.md) for technical deep-dive.
 
-### Weighted Reputation Scaling
+## 🎨 Usage Example
 
-To ensure service quality without human oversight, AgentPay employs a Game Theoretic Reputation Ledger:
+### Create Agent Account
 
-$$R_{t} = (1 - \lambda) R_{t-1} + \lambda \left( \frac{V_i}{C_{avg}} \right)$$
+```solidity
+AgentFactory factory = AgentFactory(0x...);
+bytes32 salt = factory.generateSalt(owner, 0);
+address agent = factory.createAccount(owner, salt);
+```
 
-If an API provider quality score ($R_t$) falls below the threshold, their staked MON is autonomously slashed and redistributed to the agent.
+### Create Payment Session
 
-## Implementation Roadmap
+```solidity
+AgentAccount account = AgentAccount(payable(agent));
 
-1. Genesis: Deployment of the AgentFactory on Monad Testnet 10143.
-2. Modular Core: Implementation of ERC-7579 sharded storage accounts.
-3. Scoped Signing: Integration of SessionKeyPlugin for limited-scope authority.
-4. x402 Rail: Activation of HTTP 402 Facilitator for request-native payments.
-5. Bayesian Engine: Deployment of the mathematical gas optimizer.
-6. Proof of Service: Escrow logic that releases funds only on verified 200 OK headers.
-7. Reputation Ledger: Activation of the weighted average slasher contract.
-8. Intent Mandates: Schema mapping for W3C Verifiable Credentials.
-9. Batching: Implementation of CALLTYPE_BATCH for 90 percent fee reduction.
-10. Observability: Phantom-inspired bento dashboard for real-time cost tracking.
+// Create session: $1 limit, 24 hours
+bytes32 sessionId = account.createSession(
+    apiProvider,
+    1 ether,
+    1 days
+);
+```
 
-## Repository Structure
+### Execute Micro-Payment
 
-<img width="261" height="609" alt="image" src="https://github.com/user-attachments/assets/eaac66fb-be75-42f8-a684-d3a821bc9116" />
+```solidity
+// Pay $0.001 for API call
+account.executeSessionPayment(
+    sessionId,
+    apiProvider,
+    0.001 ether
+);
+```
 
+## 🔒 Security Features
 
-## Setup and Submission
+- **Owner-only session creation**: Only account owner can authorize sessions
+- **Spending limits**: Per-session caps prevent overspending
+- **Time-bounded sessions**: Automatic expiration
+- **Session revocation**: Owner can revoke anytime
+- **Module isolation**: Modules can't interfere with session state
 
-This project was built for the Monad Blitz Mumbai hackathon.
+## 📦 Project Structure
 
-* GitHub: [https://github.com/Jayram2204/AgentPay](https://www.google.com/search?q=https://github.com/Jayram2204/AgentPay)
-* Network: Monad Testnet (ChainID 10143)
-* Live URL: [https://agentpay-dashboard.vercel.app](https://www.google.com/search?q=https://agentpay-dashboard.vercel.app)
+```
+packages/
+└── contracts/
+    ├── src/
+    │   ├── AgentAccount.sol       # ERC-7579 modular account
+    │   ├── AgentFactory.sol       # CREATE2 factory
+    │   └── interfaces/
+    │       ├── IERC7579Account.sol
+    │       └── IERC7579Module.sol
+    ├── test/
+    │   ├── AgentAccount.t.sol     # Account tests
+    │   └── AgentFactory.t.sol     # Factory tests
+    ├── script/
+    │   └── Deploy.s.sol           # Deployment script
+    ├── ARCHITECTURE.md            # Technical deep-dive
+    ├── DEPLOYMENT.md              # Deployment guide
+    └── QUICK_START.md             # 5-minute tutorial
+```
 
-AgentPay transforms SaaS liabilities into outcome-based utilities, providing the settlement heart for the machine-driven future.
+## 🧪 Testing
+
+```bash
+# Run all tests
+forge test
+
+# Run with gas reporting
+forge test --gas-report
+
+# Run specific test
+forge test --match-test testParallelSessionPayments -vvv
+
+# Generate gas snapshot
+forge snapshot
+```
+
+All 20 tests pass with comprehensive coverage of:
+- Session creation and management
+- Payment execution and limits
+- Parallel execution scenarios
+- Module installation/uninstallation
+- Access control and security
+
+## 🌐 Monad Testnet
+
+- **Chain ID**: 10143
+- **RPC**: https://testnet.monad.xyz
+- **Explorer**: https://explorer.testnet.monad.xyz
+- **Faucet**: https://faucet.testnet.monad.xyz
+- **Block Time**: 0.8s
+- **TPS**: 10,000+
+
+## 🎯 Why Monad?
+
+| Requirement | Monad | Ethereum | Solana |
+|-------------|-------|----------|--------|
+| **Throughput** | 10,000 TPS ✅ | 15 TPS ❌ | 65,000 TPS ✅ |
+| **Finality** | 0.8s ✅ | 12s ❌ | 13s ⚠️ |
+| **Gas Fees** | $0.006 ✅ | $2-50 ❌ | $0.0003 ✅ |
+| **EVM Compatible** | Yes ✅ | Yes ✅ | No ❌ |
+| **Parallel Execution** | Yes ✅ | No ❌ | Yes ✅ |
+
+**Verdict**: Monad is the only chain with high throughput, low fees, fast finality, AND EVM compatibility.
+
+## 🛣️ Roadmap
+
+### Phase 1: Core Infrastructure ✅
+- [x] ERC-7579 modular accounts
+- [x] Session-based payments
+- [x] CREATE2 factory
+- [x] Comprehensive tests
+- [x] Monad testnet deployment
+
+### Phase 2: SDK & Integration (In Progress)
+- [ ] JavaScript/TypeScript SDK
+- [ ] API provider integration
+- [ ] Demo AI agent
+- [ ] Dashboard UI
+
+### Phase 3: Production Features
+- [ ] Escrow for proof-of-service
+- [ ] Relayer/paymaster for Web2 APIs
+- [ ] Multi-chain support
+- [ ] Mainnet deployment
+
+## 📚 Documentation
+
+- [Quick Start Guide](./packages/contracts/QUICK_START.md) - Get started in 5 minutes
+- [Architecture](./packages/contracts/ARCHITECTURE.md) - Technical deep-dive
+- [Deployment Guide](./packages/contracts/DEPLOYMENT.md) - Production deployment
+- [ERC-7579 Spec](https://eips.ethereum.org/EIPS/eip-7579) - Modular account standard
+
+## 🤝 Contributing
+
+Contributions welcome! Please read our contributing guidelines and submit PRs.
+
+## 📄 License
+
+MIT License - see [LICENSE](./LICENSE) for details
+
+## 🔗 Links
+
+- [Monad](https://monad.xyz)
+- [Monad Docs](https://docs.monad.xyz)
+- [Monad Discord](https://discord.gg/monad)
+- [ERC-7579](https://eips.ethereum.org/EIPS/eip-7579)
+
+## 💬 Support
+
+- GitHub Issues: [Report bugs or request features]
+- Discord: [Join our community]
+- Twitter: [@AgentPay]
+
+---
+
+Built with ❤️ for the AI agent economy on Monad

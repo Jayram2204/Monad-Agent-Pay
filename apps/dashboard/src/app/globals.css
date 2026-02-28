@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #f1f5f9;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Force dark theme */
+:root {
+  --background: #000000;
+  --foreground: #f1f5f9;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Custom styles for Bento Grid */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.bento-item {
+  border: 1px solid #836EF9;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 1rem;
+  border-radius: 0.25rem;
+  backdrop-filter: blur(10px);
+}
+
+.monad-purple {
+  color: #836EF9;
+  border-color: #836EF9;
+}
+
+.neon-pink {
+  color: #FF007A;
+  border-color: #FF007A;
+}
+
+.slate-100 {
+  color: #f1f5f9;
+}
+
+/* Terminal-style log */
+.terminal-log {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.log-entry {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(131, 110, 249, 0.2);
+}
+
+.highlight-pink {
+  color: #FF007A;
+  font-weight: bold;
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 0.5rem;
+  background: rgba(131, 110, 249, 0.2);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #836EF9 0%, #FF007A 100%);
+  transition: width 0.3s ease;
+}
+
+/* Live counter animation */
+.live-counter {
+  font-size: 2rem;
+  font-weight: bold;
+  transition: all 0.5s ease;
+  text-shadow: 0 0 10px rgba(131, 110, 249, 0.5);
+}
+
+.savings-delta {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #836EF9, #FF007A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
